@@ -1,0 +1,9 @@
+{
+    "domains": [
+        {
+            "domain": "f20.trot.bg",
+            "webroot": "/home/ilirbktk/f20.trot.bg",
+            "enabled": true
+        }
+    ]
+}
