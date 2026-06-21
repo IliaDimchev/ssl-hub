@@ -50,24 +50,20 @@ for line in lines[1:]:
     ignored = 1 if domain in IGNORED else 0
 
     conn.execute("""
-    INSERT OR REPLACE INTO domains
-    (
-        domain,
-        keylength,
-        ca,
-        created_at,
-        renew_at
-    )
-    VALUES
-    (?, ?, ?, ?, ?)
+    UPDATE domains
+    SET
+        keylength = ?,
+        ca = ?,
+        renew_at = ?,
+        cert_exists = 1
+    WHERE domain = ?
     """,
-                 (
-                     domain,
-                     keylength,
-                     ca,
-                     created,
-                     renew
-                 ))
+             (
+                 keylength,
+                 ca,
+                 renew,
+                 domain
+             ))
 
 conn.commit()
 

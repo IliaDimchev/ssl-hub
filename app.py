@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template
 import sqlite3
 from config import DB
+from engine.acme import renew
 
 
 app = Flask(__name__)
@@ -11,10 +12,16 @@ def index():
 
     conn = sqlite3.connect(DB)
 
+
     rows = conn.execute("""
-        SELECT *
-        FROM domains
-        ORDER BY domain
+    SELECT
+        domain,
+        wordpress,
+        cert_exists,
+        renew_at,
+        ignored
+    FROM domains
+    ORDER BY domain
     """).fetchall()
 
     return render_template(

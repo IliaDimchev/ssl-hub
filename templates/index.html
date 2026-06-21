@@ -9,23 +9,50 @@
 
     <h1>SSL Hub</h1>
 
-    <table border="1">
+    <table>
+
         <tr>
             <th>Domain</th>
-            <th>Key</th>
-            <th>CA</th>
-            <th>Created</th>
+            <th>WordPress</th>
+            <th>SSL</th>
             <th>Renew</th>
+            <th>Status</th>
         </tr>
 
         {% for d in domains %}
+
         <tr>
-            <td>{{ d[1] }}</td>
-            <td>{{ d[2] }}</td>
-            <td>{{ d[4] }}</td>
-            <td>{{ d[5] }}</td>
-            <td>{{ d[6] }}</td>
+
+            <td>{{ d[0] }}</td>
+
+            <td>
+                {% if d[1] %}
+                Yes
+                {% else %}
+                No
+                {% endif %}
+            </td>
+
+            <td>
+                {% if d[2] %}
+                Yes
+                {% else %}
+                No
+                {% endif %}
+            </td>
+
+            <td>{{ d[3] }}</td>
+
+            <td>
+                {% if d[4] %}
+                Ignored
+                {% else %}
+                Managed
+                {% endif %}
+            </td>
+
         </tr>
+
         {% endfor %}
 
     </table>
