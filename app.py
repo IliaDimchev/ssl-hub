@@ -1,11 +1,10 @@
 from flask import Flask
 from flask import render_template
 import sqlite3
+from config import DB
+
 
 app = Flask(__name__)
-
-DB = "/home/ilirbktk/ssl-hub/sslhub.db"
-
 
 @app.route("/")
 def index():

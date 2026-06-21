@@ -1,10 +1,12 @@
 import subprocess
 import sqlite3
 import os
+from config import DB
+from config import ACME
 
 ACME = os.path.expanduser("~/.acme.sh/acme.sh")
 
-DB = "/home/ilirbktk/ssl-hub/sslhub.db"
+DB = "/home/ilirbktk/ssl-hub/database/sslhub.db"
 
 IGNORED = [
     "bulshop.bg"
