@@ -1,5 +1,8 @@
 import subprocess
 import sqlite3
+import os
+
+ACME = os.path.expanduser("~/.acme.sh/acme.sh")
 
 DB = "/home/ilirbktk/ssl-hub/sslhub.db"
 
