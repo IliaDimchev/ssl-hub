@@ -14,6 +14,8 @@ lines = output.strip().splitlines()
 for line in lines[1:]:
 
     parts = line.split()
+    print(parts)
+    parts = line.split()
 
     if len(parts) < 7:
         continue
