@@ -1,0 +1,7 @@
+__pycache__/
+app.pyc
+database/
+passenger_wsgi.py
+sslhub.db
+stderr.log
+tmp/
