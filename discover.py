@@ -17,7 +17,8 @@ for line in lines[1:]:
     print(parts)
     parts = line.split()
 
-    if len(parts) < 7:
+    if len(parts) < 6:
+        print("Skipping:", parts)
         continue
 
     domain = parts[0]
