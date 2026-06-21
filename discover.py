@@ -6,6 +6,10 @@ ACME = os.path.expanduser("~/.acme.sh/acme.sh")
 
 DB = "/home/ilirbktk/ssl-hub/sslhub.db"
 
+IGNORED = [
+    "bulshop.bg"
+]
+
 conn = sqlite3.connect(DB)
 
 conn.execute("""
@@ -22,7 +26,7 @@ CREATE TABLE IF NOT EXISTS domains (
 """)
 
 output = subprocess.check_output(
-    ["acme.sh", "--list"],
+    [ACME, "--list"],
     text=True
 )
 
@@ -40,6 +44,8 @@ for line in lines[1:]:
     ca = parts[-3]
     created = parts[-2]
     renew = parts[-1]
+
+    ignored = 1 if domain in IGNORED else 0
 
     conn.execute("""
     INSERT OR REPLACE INTO domains

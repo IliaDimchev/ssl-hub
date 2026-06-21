@@ -24,5 +24,14 @@ def index():
     )
 
 
+@app.route(
+    "/renew/<domain>"
+)
+def renew_domain(domain):
+
+    result = renew(domain)
+
+    return result.stdout
+
 if __name__ == "__main__":
     app.run()
