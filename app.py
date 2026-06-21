@@ -1,13 +1,28 @@
-import os
-import sys
+from flask import Flask
+from flask import render_template
+import sqlite3
+
+app = Flask(__name__)
+
+DB = "/home/ilirbktk/ssl-hub/sslhub.db"
 
 
-sys.path.insert(0, os.path.dirname(__file__))
+@app.route("/")
+def index():
+
+    conn = sqlite3.connect(DB)
+
+    rows = conn.execute("""
+        SELECT *
+        FROM domains
+        ORDER BY domain
+    """).fetchall()
+
+    return render_template(
+        "index.html",
+        domains=rows
+    )
 
 
-def app(environ, start_response):
-    start_response('200 OK', [('Content-Type', 'text/plain')])
-    message = 'It works!\n'
-    version = 'Python v' + sys.version.split()[0] + '\n'
-    response = '\n'.join([message, version])
-    return [response.encode()]
+if __name__ == "__main__":
+    app.run()
