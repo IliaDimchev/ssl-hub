@@ -1,31 +1,8 @@
-import subprocess
 import sqlite3
-import os
-from config import DB
-from config import ACME
-
-ACME = os.path.expanduser("~/.acme.sh/acme.sh")
-
-DB = "/home/ilirbktk/ssl-hub/database/sslhub.db"
-
-IGNORED = [
-    "bulshop.bg"
-]
+import subprocess
+from config import DB, ACME
 
 conn = sqlite3.connect(DB)
-
-conn.execute("""
-CREATE TABLE IF NOT EXISTS domains (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    domain TEXT UNIQUE,
-    keylength TEXT,
-    san_domains TEXT,
-    ca TEXT,
-    created_at TEXT,
-    renew_at TEXT,
-    managed INTEGER DEFAULT 1
-)
-""")
 
 output = subprocess.check_output(
     [ACME, "--list"],
@@ -44,26 +21,61 @@ for line in lines[1:]:
     domain = parts[0]
     keylength = parts[1]
     ca = parts[-3]
-    created = parts[-2]
     renew = parts[-1]
 
-    ignored = 1 if domain in IGNORED else 0
+    cursor = conn.execute(
+        """
+        SELECT id
+        FROM domains
+        WHERE domain=?
+        """,
+        (domain,)
+    )
 
-    conn.execute("""
-    UPDATE domains
-    SET
-        keylength = ?,
-        ca = ?,
-        renew_at = ?,
-        cert_exists = 1
-    WHERE domain = ?
-    """,
-             (
-                 keylength,
-                 ca,
-                 renew,
-                 domain
-             ))
+    row = cursor.fetchone()
+
+    if row:
+
+        conn.execute(
+            """
+            UPDATE domains
+            SET
+                keylength=?,
+                ca=?,
+                renew_at=?,
+                cert_exists=1
+            WHERE domain=?
+            """,
+            (
+                keylength,
+                ca,
+                renew,
+                domain
+            )
+        )
+
+    else:
+
+        conn.execute(
+            """
+            INSERT INTO domains
+            (
+                domain,
+                keylength,
+                ca,
+                renew_at,
+                cert_exists
+            )
+            VALUES
+            (?, ?, ?, ?, 1)
+            """,
+            (
+                domain,
+                keylength,
+                ca,
+                renew
+            )
+        )
 
 conn.commit()
 
