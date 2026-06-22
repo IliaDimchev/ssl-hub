@@ -46,12 +46,13 @@ def renew_domain(domain):
 @app.route("/inventory")
 def inventory():
 
-    subprocess.run(
-        [
-            PYTHON,
-            "/home/ilirbktk/ssl-hub/engine/inventory.py"
-        ]
-    )
+
+    subprocess.run([
+        PYTHON,
+        "-m",
+        "engine.inventory"
+    ],
+    cwd="/home/ilirbktk/ssl-hub")
 
     return redirect("/")
 
