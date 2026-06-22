@@ -18,6 +18,8 @@ def index():
         domain,
         wordpress,
         cert_exists,
+        source,
+        ca,
         renew_at,
         ignored
     FROM domains

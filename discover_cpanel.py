@@ -1,30 +1,39 @@
+import json
 import sqlite3
 import subprocess
-from config import DB, ACME
+
+from config import DB
 
 conn = sqlite3.connect(DB)
 
 output = subprocess.check_output(
-    [ACME, "--list"],
+    [
+        "uapi",
+        "--output=json",
+        "SSL",
+        "installed_hosts"
+    ],
     text=True
 )
 
-lines = output.strip().splitlines()
+data = json.loads(output)
 
-for line in lines[1:]:
+hosts = (
+    data
+    .get("result", {})
+    .get("data", [])
+)
 
-    parts = line.split()
-    print(parts)
-    parts = line.split()
+for host in hosts:
 
-    if len(parts) < 6:
-        print("Skipping:", parts)
+    domain = host.get("servername")
+
+    if not domain:
         continue
 
-    domain = parts[0]
-    keylength = parts[1]
-    ca = parts[-3]
-    renew = parts[-1]
+    issuer = host.get("issuer")
+
+    not_after = host.get("not_after")
 
     cursor = conn.execute(
         """
@@ -43,17 +52,15 @@ for line in lines[1:]:
             """
             UPDATE domains
             SET
-                keylength=?,
-                ca=?,
-                renew_at=?,
                 cert_exists=1,
-                source='acme'
+                source='cpanel',
+                ca=?,
+                renew_at=?
             WHERE domain=?
             """,
             (
-                keylength,
-                ca,
-                renew,
+                issuer,
+                not_after,
                 domain
             )
         )
@@ -65,22 +72,20 @@ for line in lines[1:]:
             INSERT INTO domains
             (
                 domain,
-                keylength,
+                cert_exists,
                 ca,
-                renew_at,
-                cert_exists
+                renew_at
             )
             VALUES
-            (?, ?, ?, ?, 1)
+            (?,1,?,?)
             """,
             (
                 domain,
-                keylength,
-                ca,
-                renew
+                issuer,
+                not_after
             )
         )
 
 conn.commit()
 
-print("Discovery completed")
+print("cPanel discovery completed")
