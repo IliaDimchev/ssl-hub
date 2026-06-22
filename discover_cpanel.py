@@ -2,21 +2,23 @@ import json
 import sqlite3
 import subprocess
 
-from config import DB
+from engine.config import DB
 
 conn = sqlite3.connect(DB)
+cur = conn.cursor()
 
-output = subprocess.check_output(
+result = subprocess.run(
     [
         "uapi",
         "--output=json",
         "SSL",
         "installed_hosts"
     ],
+    capture_output=True,
     text=True
 )
 
-data = json.loads(output)
+data = json.loads(result.stdout)
 
 hosts = (
     data
@@ -26,14 +28,11 @@ hosts = (
 
 for host in hosts:
 
-    domain = host.get("servername")
-
-    if not domain:
-        continue
-
     cert = host.get("certificate", {})
 
-    issuer = cert.get(
+    domains = host.get("domains", [])
+
+    issuer_org = cert.get(
         "issuer.organizationName"
     )
 
@@ -41,64 +40,66 @@ for host in hosts:
         "issuer.commonName"
     )
 
-    not_after = cert.get(
+    renew_at = cert.get(
         "not_after"
     )
 
-    cursor = conn.execute(
-        """
-        SELECT id
-        FROM domains
-        WHERE domain=?
-        """,
-        (domain,)
-    )
+    for domain in domains:
 
-    row = cursor.fetchone()
-
-    if row:
-
-        conn.execute(
+        cur.execute(
             """
-            UPDATE domains
-            SET
-                cert_exists=1,
-                source='cpanel',
-                ca=?,
-                issuer=?,
-                renew_at=?,
-                last_seen=datetime('now')
+            SELECT id
+            FROM domains
             WHERE domain=?
             """,
-            (
-                issuer,
-                issuer_cn,
-                not_after,
-                domain
-            )
+            (domain,)
         )
 
-    else:
+        row = cur.fetchone()
 
-        conn.execute(
+        if not row:
+            continue
+
+        domain_id = row[0]
+
+        cur.execute(
             """
-            INSERT INTO domains
+            DELETE FROM certificates
+            WHERE domain_id=?
+            AND source='cpanel'
+            """,
+            (domain_id,)
+        )
+
+        cur.execute(
+            """
+            INSERT INTO certificates
             (
-                domain,
-                cert_exists,
+                domain_id,
+                source,
                 ca,
-                renew_at
+                issuer,
+                renew_at,
+                cert_exists,
+                last_seen
             )
             VALUES
-            (?,1,?,?)
+            (
+                ?,?,?,?,?,?,
+                datetime('now')
+            )
             """,
             (
-                domain,
-                issuer,
-                not_after
+                domain_id,
+                "cpanel",
+                issuer_org,
+                issuer_cn,
+                renew_at,
+                1
             )
         )
 
 conn.commit()
+conn.close()
 
 print("cPanel discovery completed")

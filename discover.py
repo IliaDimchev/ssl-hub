@@ -1,32 +1,39 @@
 import sqlite3
 import subprocess
-from config import DB, ACME
+
+from engine.config import DB, ACME
 
 conn = sqlite3.connect(DB)
+cur = conn.cursor()
 
-output = subprocess.check_output(
+result = subprocess.run(
     [ACME, "--list"],
+    capture_output=True,
     text=True
 )
 
-lines = output.strip().splitlines()
+for line in result.stdout.splitlines():
 
-for line in lines[1:]:
+    line = line.strip()
 
-    parts = line.split()
-    print(parts)
+    if (
+        not line
+        or line.startswith("Main_Domain")
+        or line.startswith("-----")
+    ):
+        continue
+
     parts = line.split()
 
     if len(parts) < 6:
-        print("Skipping:", parts)
         continue
 
     domain = parts[0]
-    keylength = parts[1]
-    ca = parts[-3]
-    renew = parts[-1]
+    ssl_type = parts[1]
+    issuer = parts[3]
+    renew_at = parts[5]
 
-    cursor = conn.execute(
+    cur.execute(
         """
         SELECT id
         FROM domains
@@ -35,52 +42,51 @@ for line in lines[1:]:
         (domain,)
     )
 
-    row = cursor.fetchone()
+    row = cur.fetchone()
 
-    if row:
+    if not row:
+        continue
 
-        conn.execute(
-            """
-            UPDATE domains
-            SET
-                keylength=?,
-                ca=?,
-                renew_at=?,
-                cert_exists=1,
-                source='acme'
-            WHERE domain=?
-            """,
-            (
-                keylength,
-                ca,
-                renew,
-                domain
-            )
+    domain_id = row[0]
+
+    cur.execute(
+        """
+        DELETE FROM certificates
+        WHERE domain_id=?
+        AND source='acme'
+        """,
+        (domain_id,)
+    )
+
+    cur.execute(
+        """
+        INSERT INTO certificates
+        (
+            domain_id,
+            source,
+            ca,
+            issuer,
+            renew_at,
+            cert_exists,
+            last_seen
         )
-
-    else:
-
-        conn.execute(
-            """
-            INSERT INTO domains
-            (
-                domain,
-                keylength,
-                ca,
-                renew_at,
-                cert_exists
-            )
-            VALUES
-            (?, ?, ?, ?, 1)
-            """,
-            (
-                domain,
-                keylength,
-                ca,
-                renew
-            )
+        VALUES
+        (
+            ?,?,?,?,?,?,
+            datetime('now')
         )
+        """,
+        (
+            domain_id,
+            "acme",
+            issuer,
+            ssl_type,
+            renew_at,
+            1
+        )
+    )
 
 conn.commit()
+conn.close()
 
 print("Discovery completed")
