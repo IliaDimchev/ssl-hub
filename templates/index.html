@@ -9,11 +9,6 @@
 
     <h1>SSL Hub</h1>
 
-    <a href="/">Domains</a>
-    <a href="/ssl">Certificates</a>
-    <a href="/inventory">Refresh Inventory</a>
-    <a href="/sync">Sync</a>
-
     <table>
 
         <tr>
@@ -22,7 +17,6 @@
             <th>SSL</th>
             <th>Renew</th>
             <th>Status</th>
-            <th>Certificates</th>
         </tr>
 
         {% for d in domains %}
@@ -57,7 +51,6 @@
                 {% endif %}
             </td>
 
-            <td>{{ d[3] }}</td>
         </tr>
 
         {% endfor %}
