@@ -31,9 +31,19 @@ for host in hosts:
     if not domain:
         continue
 
-    issuer = host.get("issuer")
+    cert = host.get("certificate", {})
 
-    not_after = host.get("not_after")
+    issuer = cert.get(
+        "issuer.organizationName"
+    )
+
+    issuer_cn = cert.get(
+        "issuer.commonName"
+    )
+
+    not_after = cert.get(
+        "not_after"
+    )
 
     cursor = conn.execute(
         """
@@ -55,11 +65,14 @@ for host in hosts:
                 cert_exists=1,
                 source='cpanel',
                 ca=?,
-                renew_at=?
+                issuer=?,
+                renew_at=?,
+                last_seen=datetime('now')
             WHERE domain=?
             """,
             (
                 issuer,
+                issuer_cn,
                 not_after,
                 domain
             )

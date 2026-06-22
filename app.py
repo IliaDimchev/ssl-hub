@@ -60,11 +60,14 @@ def inventory():
 @app.route("/sync")
 def sync():
 
+
     subprocess.run(
         [
             PYTHON,
-            "/home/ilirbktk/ssl-hub/engine/sync.py"
-        ]
+            "-m",
+            "engine.sync"
+        ],
+        cwd="/home/ilirbktk/ssl-hub"
     )
 
     return redirect("/")
