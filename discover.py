@@ -1,7 +1,7 @@
 import sqlite3
 import subprocess
 
-from engine.config import DB, ACME
+from config import DB, ACME
 
 conn = sqlite3.connect(DB)
 cur = conn.cursor()

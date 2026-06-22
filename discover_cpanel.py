@@ -2,7 +2,7 @@ import json
 import sqlite3
 import subprocess
 
-from engine.config import DB
+from config import DB
 
 conn = sqlite3.connect(DB)
 cur = conn.cursor()
