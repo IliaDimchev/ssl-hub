@@ -2,7 +2,7 @@ from flask import Flask, redirect
 from flask import render_template
 import sqlite3
 import subprocess
-from config import DB
+from config import DB, PYTHON
 from engine.acme import renew
 
 
@@ -60,6 +60,19 @@ def discover():
         PYTHON,
         "/home/ilirbktk/ssl-hub/discover_sites.py"
     ])
+
+    return redirect("/")
+
+
+@app.route("/sync")
+def sync():
+
+    subprocess.run(
+        [
+            PYTHON,
+            "/home/ilirbktk/ssl-hub/engine/sync.py"
+        ]
+    )
 
     return redirect("/")
 
