@@ -39,9 +39,11 @@ for domain, ca, cert_exists in rows:
     conn.execute("""
         UPDATE domains
         SET
-            provider=?,
-            ignored=?,
-            managed=?
+            issuer=?,
+            ssl_type=?,
+            source=?,
+            cert_exists=1,
+            last_seen=datetime('now')
         WHERE domain=?
     """,
                  (
