@@ -16,15 +16,24 @@ def index():
 
     rows = conn.execute("""
     SELECT
-        domain,
-        wordpress,
-        cert_exists,
-        source,
-        ca,
-        renew_at,
-        ignored
-    FROM domains
-    ORDER BY domain
+        d.id,
+        d.domain,
+        d.wordpress,
+        d.cert_exists,
+        d.managed,
+        d.ignored,
+
+        c.source,
+        c.ca,
+        c.issuer,
+        c.renew_at
+
+    FROM domains d
+
+    LEFT JOIN certificates c
+    ON c.domain_id = d.id
+
+    ORDER BY d.domain
     """).fetchall()
 
     return render_template(
