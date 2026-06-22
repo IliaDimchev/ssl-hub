@@ -19,19 +19,21 @@ def index():
         d.id,
         d.domain,
         d.wordpress,
-        d.cert_exists,
         d.managed,
         d.ignored,
 
-        c.source,
-        c.ca,
-        c.issuer,
-        c.renew_at
+        COUNT(c.id) AS cert_count,
+
+        MAX(c.renew_at) AS renew_at,
+
+        MAX(c.cert_exists) AS cert_exists
 
     FROM domains d
 
     LEFT JOIN certificates c
-    ON c.domain_id = d.id
+        ON c.domain_id = d.id
+
+    GROUP BY d.id
 
     ORDER BY d.domain
     """).fetchall()
@@ -64,6 +66,32 @@ def inventory():
     cwd="/home/ilirbktk/ssl-hub")
 
     return redirect("/")
+
+
+@app.route("/ssl")
+def ssl_inventory():
+    conn = sqlite3.connect(DB)
+    conn.row_factory = sqlite3.Row
+
+    rows = conn.execute("""
+        SELECT
+            d.domain,
+            c.source,
+            c.ca,
+            c.issuer,
+            c.renew_at,
+            c.last_seen
+        FROM certificates c
+        JOIN domains d ON d.id = c.domain_id
+        ORDER BY d.domain
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "ssl.html",
+        certificates=rows
+    )
 
 
 @app.route("/sync")

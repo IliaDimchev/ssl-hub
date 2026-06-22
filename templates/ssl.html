@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>SSL Inventory</title>
+</head>
+
+<body>
+
+    <h1>SSL Certificates</h1>
+
+    <p>
+        <a href="/">Domains</a>
+    </p>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Domain</th>
+            <th>Source</th>
+            <th>CA</th>
+            <th>Issuer</th>
+            <th>Renew</th>
+            <th>Last Seen</th>
+        </tr>
+
+        {% for cert in certificates %}
+        <tr>
+            <td>{{ cert.domain }}</td>
+            <td>{{ cert.source }}</td>
+            <td>{{ cert.ca }}</td>
+            <td>{{ cert.issuer }}</td>
+            <td>{{ cert.renew_at }}</td>
+            <td>{{ cert.last_seen }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+</body>
+
+</html>
