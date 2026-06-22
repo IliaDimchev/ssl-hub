@@ -1,35 +1,34 @@
-import subprocess
 from config import PYTHON
+from pathlib import Path
+import subprocess
 
-COMMANDS = [
+ROOT = Path(__file__).resolve().parent.parent
 
-    [PYTHON,
-     "/home/ilirbktk/ssl-hub/discover_sites.py"],
-
-    [PYTHON,
-     "/home/ilirbktk/ssl-hub/discover.py"],
-
-    [PYTHON,
-     "/home/ilirbktk/ssl-hub/discover_cpanel.py"],
-
-    [PYTHON,
-     "-m",
-     "engine.sync"]
-
+scripts = [
+    ROOT / "discover_sites.py",
+    ROOT / "discover.py",
+    ROOT / "discover_cpanel.py",
 ]
 
-for cmd in COMMANDS:
+for script in scripts:
 
-    print("Running:", " ".join(cmd))
+    print(f"Running {script}")
 
-    result = subprocess.run(
-        cmd,
-        cwd="/home/ilirbktk/ssl-hub",
-        capture_output=True,
-        text=True
+    subprocess.run(
+        [
+            PYTHON,
+            str(script)
+        ],
+        cwd=ROOT
     )
 
-    print(result.stdout)
+subprocess.run(
+    [
+        PYTHON,
+        "-m",
+        "engine.sync"
+    ],
+    cwd=ROOT
+)
 
-    if result.stderr:
-        print(result.stderr)
+print("Inventory completed")

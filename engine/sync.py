@@ -1,58 +1,31 @@
+from config import DB
 import sqlite3
 
-from config import DB
-
 conn = sqlite3.connect(DB)
+cur = conn.cursor()
 
-rows = conn.execute("""
-SELECT
-    domain,
-    ca,
-    cert_exists
-FROM domains
-""").fetchall()
+cur.execute("""
+DELETE FROM certificates
+WHERE last_seen < datetime('now','-30 days')
+""")
 
-for domain, ca, cert_exists in rows:
+cur.execute("""
+UPDATE domains
+SET cert_exists=0
+""")
 
-    ignored = 0
-    managed = 1
-    provider = "unknown"
-
-    if not cert_exists:
-        provider = "none"
-
-    elif ca:
-
-        ca_lower = ca.lower()
-
-        if "let's encrypt" in ca_lower:
-            provider = "letsencrypt"
-
-        elif "zerossl" in ca_lower:
-            provider = "zerossl"
-
-        elif "sectigo" in ca_lower:
-            provider = "external"
-            ignored = 1
-            managed = 0
-
-    conn.execute("""
-        UPDATE domains
-        SET
-            issuer=?,
-            ssl_type=?,
-            source=?,
-            cert_exists=1,
-            last_seen=datetime('now')
-        WHERE domain=?
-    """,
-                 (
-                     provider,
-                     ignored,
-                     managed,
-                     domain
-                 ))
+cur.execute("""
+UPDATE domains
+SET cert_exists=1
+WHERE EXISTS (
+    SELECT 1
+    FROM certificates c
+    WHERE c.domain_id = domains.id
+    AND c.cert_exists = 1
+)
+""")
 
 conn.commit()
+conn.close()
 
 print("Sync completed")
