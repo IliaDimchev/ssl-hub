@@ -1,6 +1,17 @@
+from config import DB
 import sqlite3
 
-from config import DB
+import os
+import sys
+
+ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+sys.path.insert(0, ROOT)
+
 
 conn = sqlite3.connect(DB)
 
