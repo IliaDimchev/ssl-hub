@@ -43,23 +43,15 @@ def renew_domain(domain):
     return result.stdout
 
 
-@app.route("/discover")
-def discover():
+@app.route("/inventory")
+def inventory():
 
-    subprocess.run([
-        PYTHON,
-        "/home/ilirbktk/ssl-hub/discover.py"
-    ])
-
-    subprocess.run([
-        PYTHON,
-        "/home/ilirbktk/ssl-hub/discover_cpanel.py"
-    ])
-
-    subprocess.run([
-        PYTHON,
-        "/home/ilirbktk/ssl-hub/discover_sites.py"
-    ])
+    subprocess.run(
+        [
+            PYTHON,
+            "/home/ilirbktk/ssl-hub/engine/inventory.py"
+        ]
+    )
 
     return redirect("/")
 
